@@ -5,7 +5,7 @@
 
 #include <limits>
 #include <type_traits>
-#include "iterator.hpp"
+#include "../numeric/numeric_range.hpp"
 #include <stdexcept>
 #include <cmath>
 

@@ -131,16 +131,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClInclude Include="unfinished\big_number_data.hpp" />
+    <ClInclude Include="unfinished\matrix.hpp" />
+    <ClInclude Include="unfinished\trivial_vector.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="array.hpp" />
-    <ClInclude Include="big_number_data.hpp" />
-    <ClInclude Include="iterator.hpp" />
-    <ClInclude Include="matrix.hpp" />
-    <ClInclude Include="numeric_range.hpp" />
-    <ClInclude Include="trivial_vector.hpp" />
-    <ClInclude Include="value.hpp" />
+    <ClCompile Include="unfinished\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

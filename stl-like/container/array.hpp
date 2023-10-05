@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <type_traits>
-#include "iterator.hpp"
+#include "../iterator/iterator.hpp"
 
 namespace hwshqtb {
     template <typename T>
