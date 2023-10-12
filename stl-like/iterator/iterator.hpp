@@ -66,10 +66,10 @@ namespace hwshqtb {
         }
 
         constexpr Derived operator+(const difference_type n)const noexcept {
-            return {_pointer + n};
+            return arraylike_iterator{_pointer + n};
         }
         constexpr Derived operator-(const difference_type n)const noexcept {
-            return {_pointer + n};
+            return arraylike_iterator{_pointer + n};
         }
 
         constexpr bool operator==(const Derived& other)const noexcept {
