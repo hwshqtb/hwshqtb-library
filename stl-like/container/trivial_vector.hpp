@@ -2,11 +2,10 @@
 #define _HWSHQTB_TRIVIAL_VECTOR_HPP
 
 #include <type_traits>
-#include <iterator>
 #include <memory>
 #include <cstring>
 #include <limits>
-#include "..\stl-like\iterator\iterator.hpp"
+#include "..\iterator\iterator.hpp"
 #include <stdexcept>
 
 namespace hwshqtb {
