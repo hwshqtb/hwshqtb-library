@@ -1,195 +1,149 @@
-#ifndef _HWSHQTB_NUMERIC_RANGE_HPP
-#define _HWSHQTB_NUMERIC_RANGE_HPP
+#ifndef HWSHQTB_NUMERIC_RANGE_HPP
+#define HWSHQTB_NUMERIC_RANGE_HPP
 
-// 2023-10-1 done c++17
+/*
+    2023-10-1
+        done c++17
+
+    2024-5-31 
+        the iterator's type should be bidirectional iterator
+        header-only
+*/
 
 #include <limits>
 #include <type_traits>
-#include "../numeric/numeric_range.hpp"
 #include <stdexcept>
 #include <cmath>
 
 namespace hwshqtb {
-    template <typename NUMBER>
-    constexpr std::enable_if_t<std::numeric_limits<NUMBER>::is_specialized, bool> less(const NUMBER& a, const NUMBER& b) {
-        return a - b < -::std::numeric_limits<NUMBER>::epsilon() * std::abs(a + b) / 2;
-    }
-    template <typename NUMBER>
-    constexpr std::enable_if_t<std::numeric_limits<NUMBER>::is_specialized, bool> equal(const NUMBER& a, const NUMBER& b) {
-        return std::abs(a - b) <= ::std::numeric_limits<NUMBER>::epsilon() * std::abs(a + b) / 2;
-    }
-    template <typename NUMBER>
-    constexpr std::enable_if_t<std::numeric_limits<NUMBER>::is_specialized, bool> greater(const NUMBER& a, const NUMBER& b) {
-        return a - b > ::std::numeric_limits<NUMBER>::epsilon() * std::abs(a + b) / 2;
-    }
-
     namespace details {
-        template <typename NUMBER>
-        struct numeric_point_t {
-            constexpr const NUMBER& operator*()const  {
-                return _point;
-            }
-            constexpr const NUMBER* operator->()const {
-                return &_point;
-            }
-
-            constexpr numeric_point_t& operator++() {
-                _point += _step;
-                return *this;
-            }
-            constexpr numeric_point_t operator++(int) {
-                numeric_point_t ret = *this;
-                _point += _step;
-                return ret;
-            }
-            constexpr numeric_point_t& operator--() {
-                _point -= _step;
-                return *this;
-            }
-            constexpr numeric_point_t operator--(int) {
-                numeric_point_t ret = *this;
-                _point -= _step;
-                return ret;
-            }
-            constexpr numeric_point_t& operator+=(const NUMBER n) {
-                _point += _step * n;
-                return *this;
-            }
-            constexpr numeric_point_t& operator-=(const NUMBER n) {
-                _point -= _step * n;
-                return *this;
-            }
-            constexpr ::std::ptrdiff_t operator-(const numeric_point_t& other)const {
-                if (compare(_step, other._step) || compare(other._step, _step)) throw ::std::invalid_argument("invalid argument");
-                return (_point - other._point) / _step;
-            }
-            constexpr const NUMBER& operator[](const ::std::ptrdiff_t n)const noexcept {
-                return _point + n * _step;
-            }
-
-            constexpr numeric_point_t operator+(const ::std::ptrdiff_t n)const {
-                return {_point + n * _step, _step};
-            }
-            constexpr numeric_point_t operator-(const ::std::ptrdiff_t n)const {
-                return {_point - n * _step, _step};
-            }
-
-            constexpr bool operator==(const numeric_point_t& other)const {
-                return !less(_point, other._point + _step) && greater(_point + _step, other._point);
-            }
-            constexpr bool operator<(const numeric_point_t& other)const {
-                if (!equal(_step, other._step)) throw ::std::invalid_argument("invalid argument");
-                return !greater(_point + _step, other._point);
-            }
-            constexpr bool operator!=(const numeric_point_t& other)const{
-                if (!equal(_step, other._step)) throw ::std::invalid_argument("invalid argument");
-                return !greater(_point + _step, other._point) || !less(_point, other._point + _step);
-            }
-            constexpr bool operator>(const numeric_point_t& other)const {
-                if (!equal(_step, other._step)) throw ::std::invalid_argument("invalid argument");
-                return !less(_point, other._point + _step);
-            }
-            constexpr bool operator<=(const numeric_point_t& other)const {
-                if (!equal(_step, other._step)) throw ::std::invalid_argument("invalid argument");
-                return less(_point, other._point + _step);
-            }
-            constexpr bool operator>=(const numeric_point_t& other)const {
-                if (!equal(_step, other._step)) throw ::std::invalid_argument("invalid argument");
-                return greater(_point + _step, other._point);
-            }
-
-            NUMBER _point, _step;
-        };
+        template <typename Number>
+        constexpr std::enable_if_t<std::numeric_limits<Number>::is_specialized, bool> less(const Number& a, const Number& b) {
+            return a - b < -std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
+        }
+        template <typename Number>
+        constexpr std::enable_if_t<std::numeric_limits<Number>::is_specialized, bool> equal(const Number& a, const Number& b) {
+            return std::abs(a - b) <= std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
+        }
+        template <typename Number>
+        constexpr std::enable_if_t<std::numeric_limits<Number>::is_specialized, bool> greater(const Number& a, const Number& b) {
+            return a - b > std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
+        }
     }
 
-    template <typename NUMBER>
-    class numeric_range_iterator:
-        public arraylike_iterator<numeric_range_iterator<NUMBER>,
-        details::numeric_point_t<NUMBER>, const NUMBER, std::ptrdiff_t, const NUMBER*, const NUMBER&> {
+    template <typename Number>
+    class numeric_range;
+
+    template <typename Number>
+    class numeric_range_iterator {
+        friend numeric_range<Number>;
 
     public:
-        constexpr numeric_range_iterator(const arraylike_iterator<numeric_range_iterator<NUMBER>,
-            details::numeric_point_t<NUMBER>, const NUMBER, std::ptrdiff_t, const NUMBER*, const NUMBER&>& other)noexcept:
-            arraylike_iterator<numeric_range_iterator<NUMBER>,
-            details::numeric_point_t<NUMBER>, const NUMBER, std::ptrdiff_t, const NUMBER*, const NUMBER&>::arraylike_iterator(other) {}
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = const Number;
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*;
+        using reference = value_type&;
+
+    private:
+        constexpr numeric_range_iterator(Number point, const Number step)noexcept:
+            _point(point), _step(step) {}
+
+    public:
+        constexpr numeric_range_iterator(const numeric_range_iterator&) = default;
+        constexpr ~numeric_range_iterator() = default;
+
+        constexpr reference operator*()const noexcept {
+            return _point;
+        }
+        constexpr pointer operator->()const noexcept {
+            return std::addressof(_point);
+        }
+
+        constexpr numeric_range_iterator& operator++()noexcept {
+            _point += _step;
+            return *this;
+        }
+        constexpr numeric_range_iterator operator++(int)noexcept {
+            numeric_range_iterator ret = *this;
+            _point += _step;
+            return ret;
+        }
+        constexpr numeric_range_iterator& operator--()noexcept {
+            _point -= _step;
+            return *this;
+        }
+        constexpr numeric_range_iterator operator--(int)noexcept {
+            numeric_range_iterator ret = *this;
+            _point -= _step;
+            return ret;
+        }
+
+        constexpr bool operator==(const numeric_range_iterator& other)const {
+            if (!details::equal(_step, other._step)) throw std::invalid_argument("invalid argument");
+            return details::greater(other._point + _step, _point) && !details::less(_point, other._point);
+        }
+        constexpr bool operator!=(const numeric_range_iterator& other)const {
+            if (!details::equal(_step, other._step)) throw std::invalid_argument("invalid argument");
+            return !details::greater(other._point + _step, _point) || details::less(_point, other._point);
+        }
+
+        constexpr numeric_range_iterator& operator+=(difference_type n)noexcept {
+            _point += _step * n;
+            return *this;
+        }
+        constexpr numeric_range_iterator& operator-=(difference_type n)noexcept {
+            _point -= _step * n;
+            return *this;
+        }
+        constexpr numeric_range_iterator operator+(difference_type n)const noexcept {
+            return {_point + n * _step, _step};
+        }
+        constexpr numeric_range_iterator operator-(difference_type n)const noexcept {
+            return {_point - n * _step, _step};
+        }
+
+    private:
+        Number _point;
+        const Number _step;
+
     };
 
     template <typename T>
     class numeric_range {
-        using NUMBER = std::decay_t<T>;
-        static_assert(std::numeric_limits<NUMBER>::is_specialized, "NUMBER must be NumericType");
+        using Number = std::decay_t<T>;
+        static_assert(std::numeric_limits<Number>::is_specialized, "Number must be NumericType");
 
     public:
-        using value_type = const NUMBER;
-        using size_type = std::size_t;
-        using difference_type = std::ptrdiff_t;
+        using value_type = const Number;
         using reference = value_type&;
         using const_reference = reference;
         using pointer = value_type*;
         using const_pointer = pointer;
-        using iterator = numeric_range_iterator<NUMBER>;
+        using size_type = std::size_t;
+        using difference_type = std::ptrdiff_t;
+        using iterator = numeric_range_iterator<Number>;
         using const_iterator = iterator;
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = reverse_iterator;
 
-    private:
-        using original_iterator = arraylike_iterator<iterator, details::numeric_point_t<std::decay_t<NUMBER>>, value_type, difference_type, pointer, reference>;
-        using const_original_iterator = original_iterator;
-
     public:
-        constexpr numeric_range(const NUMBER& begin, const NUMBER& end, const NUMBER& step):
-            _begin(begin), _end(NUMBER(std::ptrdiff_t((end - begin) / step)) * step + begin), _step(step) {
-            if (!greater(_step, 0)) throw std::invalid_argument("invalid argument");
+        constexpr numeric_range(const Number& begin, const Number& end, const Number& step):
+            _begin(begin), _end(end), _step(step) {
+            if (!greater(_step, (Number)0)) throw std::invalid_argument("invalid argument");
             if (greater(_begin, _end)) throw std::invalid_argument("invalid argument");
         }
-        constexpr numeric_range(const NUMBER& end, const NUMBER& step) :
-            _begin(), _end(NUMBER(std::ptrdiff_t((end) / step))* step), _step(step) {
-            if (!greater(_step, 0)) throw std::invalid_argument("invalid argument");
-            if (greater(0, _end)) throw std::invalid_argument("invalid argument");
+        constexpr numeric_range(const Number& end, const Number& step) :
+            _begin(), _end(end), _step(step) {
+            if (!details::greater(_step, (Number)0)) throw std::invalid_argument("invalid argument");
+            if (details::greater((Number)0, _end)) throw std::invalid_argument("invalid argument");
         }
-        constexpr numeric_range(const NUMBER& end) :
-            _begin(), _end(NUMBER(std::ptrdiff_t((end)))), _step(1) {
-            if (greater(0, _end)) throw std::invalid_argument("invalid argument");
+        constexpr numeric_range(const Number& end) :
+            _begin(), _end(end), _step(1) {
+            if (greater((Number)0, _end)) throw std::invalid_argument("invalid argument");
         }
-
-        constexpr reference at(const size_type pos)const {
-            if (!compare(pos * _step, _end - _begin)) throw std::out_of_range("out of range");
-            return _begin + pos * _step;
-        }
-        constexpr reference operator[](const size_type pos)const noexcept {
-            return _begin + pos * _step;
-        }
-        constexpr reference front()const noexcept {
-            return _begin;
-        }
-        constexpr reference back()const noexcept {
-            return _end - _step;
-        }
-
-        constexpr iterator begin()const noexcept {
-            return iterator(original_iterator(details::numeric_point_t<std::decay_t<NUMBER>>{_begin, _step}));
-        }
-        constexpr const_iterator cbegin()const noexcept {
-            return iterator(original_iterator(details::numeric_point_t<std::decay_t<NUMBER>>{_begin, _step}));
-        }
-        constexpr iterator end()const noexcept {
-            return iterator(original_iterator(details::numeric_point_t<std::decay_t<NUMBER>>{_end, _step}));
-        }
-        constexpr const_iterator cend()const noexcept {
-            return iterator(original_iterator(details::numeric_point_t<std::decay_t<NUMBER>>{_end, _step}));
-        }
-        constexpr reverse_iterator rbegin()const noexcept {
-            return reverse_iterator(iterator());
-        }
-        constexpr const_reverse_iterator crbegin()const noexcept {
-            return const_reverse_iterator(cend());
-        }
-        constexpr reverse_iterator rend()const noexcept {
-            return reverse_iterator(begin());
-        }
-        constexpr const_reverse_iterator crend()const noexcept {
-            return const_reverse_iterator(cbegin());
-        }
+        constexpr numeric_range(const numeric_range&) = default;
+        constexpr ~numeric_range() = default;
 
         constexpr bool operator==(const numeric_range& other)const {
             return !compare(_begin, other._begin) && !compare(other._begin, _begin) &&
@@ -202,24 +156,41 @@ namespace hwshqtb {
                 compare(_step, other._step) || !compare(other._step, _step);
         }
 
+        constexpr iterator begin()const noexcept {
+            return iterator(_begin, _step);
+        }
+        constexpr const_iterator cbegin()const noexcept {
+            return begin();
+        }
+        constexpr iterator end()const noexcept {
+            return iterator(_end, _step);
+        }
+        constexpr const_iterator cend()const noexcept {
+            return end();
+        }
+        constexpr reverse_iterator rbegin()const noexcept {
+            return reverse_iterator(end());
+        }
+        constexpr const_reverse_iterator crbegin()const noexcept {
+            return const_reverse_iterator(cend());
+        }
+        constexpr reverse_iterator rend()const noexcept {
+            return reverse_iterator(begin());
+        }
+        constexpr const_reverse_iterator crend()const noexcept {
+            return const_reverse_iterator(cbegin());
+        }
+
         constexpr bool empty()const noexcept {
             return compare(_end - _begin, _step);
         }
         constexpr size_type size()const {
             return (_end - _begin) / _step;
         }
-        constexpr size_type max_size()const {
-            return std::numeric_limits<size_type>::max();
-        }
-
-        constexpr void swap(numeric_range& other) {
-            std::swap(_begin, other._begin);
-            std::swap(_end, other._end);
-            std::swap(_step, other._step);
-        }
 
     private:
-        NUMBER _begin, _end, _step;
+        Number _begin, _end, _step;
+
     };
 
     template <typename T1, typename T2, typename T3>
@@ -228,6 +199,7 @@ namespace hwshqtb {
     numeric_range(T1&&, T2&&) -> numeric_range<std::common_type_t<std::decay_t<T1>, std::decay_t<T2>>>;
     template <typename T>
     numeric_range(T&&) -> numeric_range<std::decay_t<T>>;
+
 }
 
 namespace std {
@@ -235,6 +207,7 @@ namespace std {
     constexpr void swap(hwshqtb::numeric_range<T>& a, hwshqtb::numeric_range<T>& b) {
         a.swap(b);
     }
+
 }
 
 #endif
