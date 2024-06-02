@@ -17,19 +17,19 @@ namespace hwshqtb {
 
         constexpr arraylike_iterator()noexcept:
             _pointer(nullptr) {}
-        constexpr explicit arraylike_iterator(Type _pointer)noexcept:
-            _pointer(_pointer) {}
+        constexpr explicit arraylike_iterator(Type pointer)noexcept:
+            _pointer(pointer) {}
 
         constexpr reference operator*() {
             return *_pointer;
         }
-        constexpr reference operator*()const {
+        constexpr const reference operator*()const {
             return *_pointer;
         }
         constexpr pointer operator->() {
             return _pointer;
         }
-        constexpr pointer operator->()const {
+        constexpr const pointer operator->()const {
             return _pointer;
         }
 
@@ -61,7 +61,7 @@ namespace hwshqtb {
         constexpr reference operator[](const difference_type n)noexcept {
             return _pointer[n];
         }
-        constexpr reference operator[](const difference_type n)const noexcept {
+        constexpr const reference operator[](const difference_type n)const noexcept {
             return _pointer[n];
         }
 
@@ -93,6 +93,7 @@ namespace hwshqtb {
 
     private:
         Type _pointer;
+
     };
 }
 
