@@ -1,5 +1,5 @@
-﻿#ifndef _HWSHQTB_TRIVIAL_VECTOR_HPP
-#define _HWSHQTB_TRIVIAL_VECTOR_HPP
+﻿#ifndef HWSHQTB__TRIVIAL_VECTOR_HPP
+#define HWSHQTB__TRIVIAL_VECTOR_HPP
 
 #include <type_traits>
 #include <memory>

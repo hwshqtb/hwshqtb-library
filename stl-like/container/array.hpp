@@ -1,5 +1,5 @@
-#ifndef _HWSHQTB_ARRAY_HPP
-#define _HWSHQTB_ARRAY_HPP
+#ifndef HWSHQTB__ARRAY_HPP
+#define HWSHQTB__ARRAY_HPP
 
 // 2023-9-30 done c++17
 

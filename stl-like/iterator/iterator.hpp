@@ -1,5 +1,5 @@
-#ifndef _HWSHQTB_ITERATOR_HPP
-#define _HWSHQTB_ITERATOR_HPP
+#ifndef HWSHQTB__ITERATOR_HPP
+#define HWSHQTB__ITERATOR_HPP
 
 #include <cstddef>
 #include <iterator>

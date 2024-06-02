@@ -1,5 +1,5 @@
-#ifndef _HWSHQTB_VALUE_HPP
-#define _HWSHQTB_VALUE_HPP
+#ifndef HWSHQTB__VALUE_HPP
+#define HWSHQTB__VALUE_HPP
 
 // 2023-10-2 done c++17
 
