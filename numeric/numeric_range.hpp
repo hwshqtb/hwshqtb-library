@@ -8,6 +8,9 @@
     2024-5-31 
         the iterator's type should be bidirectional iterator
         header-only
+
+    2024-6-3
+        c++17 for sure
 */
 
 #include <limits>
@@ -51,7 +54,7 @@ namespace hwshqtb {
 
     public:
         constexpr numeric_range_iterator(const numeric_range_iterator&) = default;
-        constexpr ~numeric_range_iterator() = default;
+        ~numeric_range_iterator() = default;
 
         constexpr reference operator*()const noexcept {
             return _point;
@@ -143,7 +146,7 @@ namespace hwshqtb {
             if (greater((Number)0, _end)) throw std::invalid_argument("invalid argument");
         }
         constexpr numeric_range(const numeric_range&) = default;
-        constexpr ~numeric_range() = default;
+        ~numeric_range() = default;
 
         constexpr bool operator==(const numeric_range& other)const {
             return !compare(_begin, other._begin) && !compare(other._begin, _begin) &&
