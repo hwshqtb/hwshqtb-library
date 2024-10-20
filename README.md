@@ -2,7 +2,7 @@
 
 [![Language](https://img.shields.io/badge/C%2B%2B-11_14_17_20-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
 [![License](https://img.shields.io/badge/License-BSL--1.0-blue.svg)](https://opensource.org/licenses/BSL-1.0)
-[![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)](https://github.com/martinmoene/expected-lite/releases)
+![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)
 
 ## state
 |header|module|version|requirements|description|
