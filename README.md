@@ -9,5 +9,6 @@
 |:-:|:-:|:-:|:-:|-|
 |version.hpp|none|![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)|![Language](https://img.shields.io/badge/C%2B%2B-11_14_17_20-blue.svg)|version control macros and helper functions definition(s)|
 |trivial_vector.hpp|container|![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)|![Language](https://img.shields.io/badge/C%2B%2B-11_14_17_20-blue.svg)|std::vector<T, Allocator> for [TrivialType](https://en.cppreference.com/w/cpp/named_req/TrivialType)|
+|ordered_map.hpp|container|![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)|![Language](https://img.shields.io/badge/C%2B%2B-11_14_17_20-blue.svg)|combination of list-like container and associative container, behaving like [java LinkedHashMap](https://docs.oracle.com/javase/8/docs/api/java/util/TreeMap.html) |
 |numeric_range.hpp|utility|![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)|![Language](https://img.shields.io/badge/C%2B%2B-11_14_17_20-blue.svg)|c++ version of [Python range()](https://docs.python.org/3.8/tutorial/controlflow.html#the-range-function)|
 |value.hpp|utility|![Version](https://img.shields.io/badge/Version-0.1--start-blue.svg)|![Language](https://img.shields.io/badge/C%2B%2B-17_20-blue.svg)||
