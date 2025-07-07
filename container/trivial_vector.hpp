@@ -6,6 +6,10 @@
 *       c++11 and above
 *       change position (change module belonging to)
 *       header-only except version control header `version.hpp`
+* 
+*   2025-07-07
+*       change exception what()
+* 
 */
 
 #include "../version.hpp"
@@ -187,11 +191,11 @@ namespace hwshqtb {
             }
 
             HWSHQTB_CONSTEXPR20 reference at(size_type pos) {
-                if (pos > _size) throw std::out_of_range("out_of_range");
+                if (pos > _size) throw std::out_of_range("hwshqtb::container::trivial_vector<T, Allocator>::at(size_type) => std::out_of_range");
                 return _buffer[pos];
             }
             HWSHQTB_CONSTEXPR20 const_reference at(size_type pos)const {
-                if (pos > _size) throw std::out_of_range("out_of_range");
+                if (pos > _size) throw std::out_of_range("hwshqtb::container::trivial_vector<T, Allocator>::at(size_type)const => std::out_of_range");
                 return _buffer[pos];
             }
 
@@ -277,7 +281,7 @@ namespace hwshqtb {
 
             HWSHQTB_CONSTEXPR20 void reserve(size_type new_capacity) {
                 if (new_capacity > max_size())
-                    throw std::length_error("hwshqtb::container::trivial_vector<T, Allocator>::reserve() => std::length_error");
+                    throw std::length_error("hwshqtb::container::trivial_vector<T, Allocator>::reserve(size_type) => std::length_error");
                 if (new_capacity > _capacity) {
                     new_capacity = _get_new_capacity(new_capacity);
                     pointer new_buffer = allocator_traits::_allocate(_allocator, new_capacity);

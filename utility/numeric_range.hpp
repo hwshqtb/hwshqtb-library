@@ -16,35 +16,26 @@
 *       c++11 and above
 *       change position (change module belonging to)
 *       header-only except version control header `version.hpp`
+* 
+*   2024-12-29
+*       c++11 for sure
+*       remove floating-type support
+*       simplify implementation
+*       some bug fix
+* 
+*   2024-12-30
+*       add floating-type support
+*       the iterator's type become random access iterator
 */
 
 #include "../version.hpp"
-#include <limits>
-#include <type_traits>
-#include <stdexcept>
-#include <cmath>
 
 namespace hwshqtb {
     namespace utility {
-        namespace detail {
-            template <typename Number>
-            constexpr typename std::enable_if<std::numeric_limits<Number>::is_specialized, bool>::type less(const Number& a, const Number& b) {
-                return a - b < -std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
-            }
-            template <typename Number>
-            constexpr typename std::enable_if<std::numeric_limits<Number>::is_specialized, bool>::type equal(const Number& a, const Number& b) {
-                return std::abs(a - b) <= std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
-            }
-            template <typename Number>
-            constexpr typename std::enable_if<std::numeric_limits<Number>::is_specialized, bool>::type greater(const Number& a, const Number& b) {
-                return a - b > std::numeric_limits<Number>::epsilon() * std::abs(a + b) / 2;
-            }
-        }
-
         template <typename T>
         class numeric_range {
             using Number = typename std::decay<T>::type;
-            static_assert(std::numeric_limits<Number>::is_specialized, "Number must be NumericType");
+            static_assert(std::numeric_limits<Number>::is_specialized, "numeric_range<T> => T must be NumericType");
 
         public:
             using value_type = const Number;
@@ -60,36 +51,27 @@ namespace hwshqtb {
             using const_reverse_iterator = reverse_iterator;
 
         public:
-            constexpr numeric_range() = default;
-            HWSHQTB_CONSTEXPR14 numeric_range(const Number& begin, const Number& end, const Number& step):
-                _begin(begin), _end(end), _step(step) {
-                if (!detail::greater(_step, (Number)0)) throw std::invalid_argument("hwshqtb::utility::numeric_range<T>::numeric_range(begin, end, step) => invalid argument");
-                if (detail::greater(_begin, _end)) throw std::invalid_argument("invalid argument");
-            }
-            HWSHQTB_CONSTEXPR14 numeric_range(const Number& end, const Number& step) :
-                _begin(), _end(end), _step(step) {
-                if (!detail::greater(_step, (Number)0)) throw std::invalid_argument("invalid argument");
-                if (detail::greater((Number)0, _end)) throw std::invalid_argument("invalid argument");
-            }
-            HWSHQTB_CONSTEXPR14 numeric_range(const Number& end) :
-                _begin(), _end(end), _step(1) {
-                if (greater((Number)0, _end)) throw std::invalid_argument("invalid argument");
-            }
+            constexpr numeric_range():
+                _begin(0), _step(1), _size(0) {}
+            constexpr numeric_range(const Number& begin, const Number& end, const Number& step):
+                _begin(begin),
+                _step((end >= begin && step > 0 || end <= begin && step < 0) ? step : throw std::invalid_argument("hwshqtb::utility::numeric_range<T>::numeric_range(const Number&, const Number&, const Number&) => invalid argument")),
+                _size(static_cast<size_type>(step < 0 ? ((begin - end) / -step + ((begin - end) % -step ? 1 : 0)) : ((end - begin) / step + ((end - begin) % step ? 1 : 0)))) {}
+            constexpr numeric_range(const Number& end, const Number& step):
+                _begin(0),
+                _step((end >= 0 && step > 0 || end <= 0 && step < 0) ? step : throw std::invalid_argument("hwshqtb::utility::numeric_range<T>::numeric_range(const Number&, const Number&, const Number&) => invalid argument")),
+                _size(static_cast<size_type>(step < 0 ? -end : end)) {}
+            constexpr explicit numeric_range(const Number& end):
+                _begin(0),
+                _step(end >= 0 ? 1 : throw std::invalid_argument("hwshqtb::utility::numeric_range<T>::numeric_range(const Number&, const Number&, const Number&) => invalid argument")),
+                _size(static_cast<size_type>(end)) {}
             constexpr numeric_range(const numeric_range&) = default;
 
-            HWSHQTB_CONSTEXPR20 ~numeric_range() = default;
-
-            HWSHQTB_CONSTEXPR14 numeric_range& operator=(const numeric_range&) = default;
-
             constexpr bool operator==(const numeric_range& other)const {
-                return !compare(_begin, other._begin) && !compare(other._begin, _begin) &&
-                    !compare(_end, other._end) && !compare(other._end, _end) &&
-                    !compare(_step, other._step) && !compare(other._step, _step);
+                return _begin == other._begin && _step == other._step && _size == other._size;
             }
             constexpr bool operator!=(const numeric_range& other)const {
-                return compare(_begin, other._begin) || compare(other._begin, _begin) ||
-                    compare(_end, other._end) || compare(other._end, _end) ||
-                    compare(_step, other._step) || !compare(other._step, _step);
+                return _begin != other._begin || _step != other._step || _size != other._size;
             }
 
             constexpr iterator begin()const noexcept {
@@ -99,7 +81,7 @@ namespace hwshqtb {
                 return begin();
             }
             constexpr iterator end()const noexcept {
-                return iterator(_end, _step);
+                return iterator(_begin, _step, static_cast<difference_type>(_size));
             }
             constexpr const_iterator cend()const noexcept {
                 return end();
@@ -118,14 +100,15 @@ namespace hwshqtb {
             }
 
             constexpr bool empty()const noexcept {
-                return compare(_end - _begin, _step);
+                return _size == 0;
             }
             constexpr size_type size()const {
-                return (_end - _begin) / _step;
+                return _size;
             }
 
         private:
-            Number _begin, _end, _step;
+            Number _begin, _step;
+            size_type _size;
 
         };
 
@@ -134,77 +117,106 @@ namespace hwshqtb {
             friend numeric_range<T>;
 
         public:
-            using iterator_category = std::bidirectional_iterator_tag;
+            using iterator_category = std::random_access_iterator_tag;
             using value_type = const Number;
             using difference_type = std::ptrdiff_t;
-            using pointer = value_type*;
+            using pointer = void;
             using reference = value_type&;
 
         private:
-            constexpr iterator(Number point, const Number step)noexcept:
-                _point(point), _step(step) {}
+            constexpr iterator(Number point, Number step, difference_type index = 0)noexcept:
+                _point(point), _step(step), _index(index) {}
 
         public:
             constexpr iterator() = default;
             constexpr iterator(const iterator&) = default;
-            HWSHQTB_CONSTEXPR20 ~iterator() = default;
-
-            HWSHQTB_CONSTEXPR14 iterator& operator=(const iterator&) = default;
 
             constexpr reference operator*()const noexcept {
-                return _point;
-            }
-            constexpr pointer operator->()const noexcept {
-                return std::addressof(_point);
+                return _point + _step * _index;
             }
 
             HWSHQTB_CONSTEXPR14 iterator& operator++()noexcept {
-                _point += _step;
+                ++_index;
                 return *this;
             }
             HWSHQTB_CONSTEXPR14 iterator operator++(int)noexcept {
                 iterator ret = *this;
-                _point += _step;
+                ++_index;
                 return ret;
             }
             HWSHQTB_CONSTEXPR14 iterator& operator--()noexcept {
-                _point -= _step;
+                --_index;
                 return *this;
             }
             HWSHQTB_CONSTEXPR14 iterator operator--(int)noexcept {
                 iterator ret = *this;
-                _point -= _step;
+                --_index;
                 return ret;
             }
 
-            HWSHQTB_CONSTEXPR14 bool operator==(const iterator& other)const {
-                if (!detail::equal(_step, other._step)) throw std::invalid_argument("invalid argument");
-                return detail::greater(other._point + _step, _point) && !detail::less(_point, other._point);
+            constexpr bool operator==(const iterator& other)const {
+                return _index == other._index;
             }
-            HWSHQTB_CONSTEXPR14 bool operator!=(const iterator& other)const {
-                if (!detail::equal(_step, other._step)) throw std::invalid_argument("invalid argument");
-                return !detail::greater(other._point + _step, _point) || detail::less(_point, other._point);
+            constexpr bool operator!=(const iterator& other)const {
+                return _index != other._index;
+            }
+            constexpr bool operator<(const iterator& other)const {
+                return _index < other._index;
+            }
+            constexpr bool operator>(const iterator& other)const {
+                return _index > other._index;
+            }
+            constexpr bool operator<=(const iterator& other)const {
+                return _index <= other._index;
+            }
+            constexpr bool operator>=(const iterator& other)const {
+                return _index >= other._index;
             }
 
             HWSHQTB_CONSTEXPR14 iterator& operator+=(difference_type n)noexcept {
-                _point += _step * n;
+                _index += n;
                 return *this;
             }
             HWSHQTB_CONSTEXPR14 iterator& operator-=(difference_type n)noexcept {
-                _point -= _step * n;
+                _index -= n;
                 return *this;
             }
+            friend constexpr iterator operator+(difference_type n, const iterator& iter)noexcept {
+                return iterator(iter._point, iter._step, iter._index + n);
+            }
             constexpr iterator operator+(difference_type n)const noexcept {
-                return {_point + n * _step, _step};
+                return iterator(_point, _step, _index + n);
             }
             constexpr iterator operator-(difference_type n)const noexcept {
-                return {_point - n * _step, _step};
+                return iterator(_point, _step, _index - n);
+            }
+            constexpr difference_type operator-(const iterator& other)const noexcept {
+                return _index - other._index;
+            }
+            constexpr reference operator[](difference_type n)const noexcept {
+                return *(*this + n);
             }
 
         private:
             Number _point, _step;
+            difference_type _index;
 
         };
+
+        template <typename T1, typename T2, typename T3>
+        constexpr numeric_range<typename std::common_type<typename std::decay<T1>::type, typename std::decay<T2>::type, typename std::decay<T3>::type>::type> make_numeric_range(T1&& t1, T2&& t2, T3&& t3)noexcept {
+            return numeric_range<typename std::common_type<typename std::decay<T1>::type, typename std::decay<T2>::type, typename std::decay<T3>::type>::type>(std::forward<T1>(t1), std::forward<T2>(t2), std::forward<T3>(t3));
+        }
+
+        template <typename T1, typename T2>
+        constexpr numeric_range<typename std::common_type<typename std::decay<T1>::type, typename std::decay<T2>::type>::type> make_numeric_range(T1&& t1, T2&& t2)noexcept {
+            return numeric_range<typename std::common_type<typename std::decay<T1>::type, typename std::decay<T2>::type>::type>(std::forward<T1>(t1), std::forward<T2>(t2));
+        }
+
+        template <typename T>
+        constexpr numeric_range<typename std::common_type<typename std::decay<T>::type>::type> make_numeric_range(T&& t)noexcept {
+            return numeric_range<typename std::common_type<typename std::decay<T>::type>::type>(std::forward<T>(t));
+        }
 
 #if __cplusplus >= 201703L
         template <typename T1, typename T2, typename T3>
@@ -215,14 +227,6 @@ namespace hwshqtb {
         numeric_range(T&&) -> numeric_range<std::decay_t<T>>;
 #endif
     }
-}
-
-namespace std {
-    template <typename T>
-    constexpr void swap(hwshqtb::utility::numeric_range<T>& a, hwshqtb::utility::numeric_range<T>& b) {
-        a.swap(b);
-    }
-
 }
 
 #endif
